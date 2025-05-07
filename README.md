@@ -17,7 +17,7 @@ Todos os projetos são desenvolvidos em **HTML** e **JavaScript**, podendo ser e
 
 Você pode personalizar seu projeto substituindo o logotipo padrão.
 
-* Substitua o arquivo `logo.png` por sua própria imagem.
+* Substitua o arquivo `logo.png` por sua própria imagem, ela deve estar no mesmo diretório do arquivo html.
 * Tamanho recomendado: **180x80 pixels**.
 * Se não souber como redimensionar sua imagem, siga este passo a passo:
 
