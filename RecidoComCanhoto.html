@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recibo Local</title>
+  <style>
+    @media print {
+      body {
+        margin: 0;
+      }
+
+      #formRecibo, #botoesAcoes {
+        display: none !important;
+      }
+
+      .recibo {
+        page-break-inside: avoid;
+      }
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      padding: 20px;
+    }
+
+    form#formRecibo {
+      background-color: #fff;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    form#formRecibo h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #213644;
+    }
+
+    form#formRecibo label {
+      display: block;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    form#formRecibo input[type="text"],
+    form#formRecibo input[type="number"],
+    form#formRecibo input[type="date"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      transition: border 0.3s ease;
+    }
+
+    form#formRecibo input:focus {
+      border-color: #0077cc;
+      outline: none;
+    }
+
+    form#formRecibo button[type="submit"] {
+      background-color: #213644;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    form#formRecibo button[type="submit"]:hover {
+      background-color: #2c4c5f;
+    }
+
+    .recibo {
+      display: flex;
+      border: 1px solid #000;
+      width: 100%;
+      max-width: 950px;
+      margin: 30px auto;
+      background-color: #fff;
+    }
+
+    .canhoto, .principal {
+      padding: 15px;
+      box-sizing: border-box;
+    }
+
+    .canhoto {
+      width: 30%;
+      border-right: 1px dashed #000;
+    }
+
+    .principal {
+      width: 70%;
+      position: relative;
+    }
+
+    .linha {
+      border-bottom: 1px solid #000;
+      margin: 10px 0;
+      height: 20px;
+	  font-size: 0.8em;
+    }
+
+    .linha-data {
+      border-bottom: 1px solid #000;
+      margin: 10px 0px;
+      height: 20px;
+      text-align: right;
+    }
+
+    .assinatura {
+      border-top: 1px solid #000;
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 5px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .valor-box {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: 1px solid #000;
+      padding: 10px 15px;
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+
+    .rodape {
+      border-top: 5px solid #213644;
+      font-size: 10px;
+      margin-top: 20px;
+    }
+
+    .titulo {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #botoesAcoes {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #botoesAcoes button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #213644;
+      color: white;
+      font-size: 14px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #botoesAcoes button:hover {
+      background-color: #2c4c5f;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="formRecibo">
+    <h2>Gerar Recibo</h2>
+
+    <label>Nome:
+      <input type="text" name="nome" required />
+    </label>
+
+    <label>Valor (R$):
+      <input type="number" name="valor" step="0.01" required />
+    </label>
+
+    <label>Referente:
+      <input type="text" name="job" required />
+    </label>
+	
+    <label>Cidade:
+      <input type="text" name="cidade" required />
+    </label>
+
+    <label>Data:
+      <input type="date" name="data" required />
+    </label>
+
+    <button type="submit">Gerar Recibo</button>
+  </form>
+
+  <div id="reciboResultado" style="display: none;"></div>
+
+  <div id="botoesAcoes" style="display: none;">
+    <button onclick="window.print()">Imprimir Recibo</button>
+    <button onclick="novoRecibo()">Gerar Novo Recibo</button>
+  </div>
+
+  <script>
+    const meses = [
+      "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+      "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+    ];
+
+    function numeroPorExtenso(n) {
+      const unidades = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
+      const especiais = ["dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];
+      const dezenas = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+      const centenas = ["", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos"];
+
+      if (n === 100) return "cem";
+      if (n < 10) return unidades[n];
+      if (n < 20) return especiais[n - 10];
+      if (n < 100) {
+        const d = Math.floor(n / 10), u = n % 10;
+        return dezenas[d] + (u ? " e " + unidades[u] : "");
+      }
+      if (n < 1000) {
+        const c = Math.floor(n / 100), r = n % 100;
+        return centenas[c] + (r ? " e " + numeroPorExtenso(r) : "");
+      }
+      if (n < 10000) {
+        const m = Math.floor(n / 1000), r = n % 1000;
+        return unidades[m] + " mil" + (r ? " e " + numeroPorExtenso(r) : "");
+      }
+      return n.toString();
+    }
+
+    function valorPorExtenso(valor) {
+      const reais = Math.floor(valor);
+      const centavos = Math.round((valor - reais) * 100);
+      let texto = numeroPorExtenso(reais) + " re" + (reais !== 1 ? "ais" : "al");
+      if (centavos > 0) {
+        texto += " e " + numeroPorExtenso(centavos) + " centavo" + (centavos !== 1 ? "s" : "");
+      }
+      return texto;
+    }
+
+    function dataPorExtenso(dataStr) {
+      const [ano, mes, dia] = dataStr.split("-");
+      return `${dia.padStart(2, '0')} de ${meses[parseInt(mes) - 1]} de ${ano}`;
+    }
+
+    function novoRecibo() {
+      document.getElementById("reciboResultado").style.display = "none";
+      document.getElementById("botoesAcoes").style.display = "none";
+      document.getElementById("formRecibo").reset();
+      document.getElementById("formRecibo").style.display = "block";
+    }
+
+    document.getElementById("formRecibo").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const dados = new FormData(this);
+      const nome = dados.get("nome");
+      const valor = parseFloat(dados.get("valor"));
+      const job = dados.get("job");
+	  const cidade = dados.get("cidade");
+      const data = dados.get("data");
+
+      const valorExt = valorPorExtenso(valor);
+      const dataExt = dataPorExtenso(data);
+
+      const modeloHTML = `
+        <div class="recibo">
+          <div class="canhoto">
+            <div class="titulo">PAGAMENTO</div>
+            <div class="linha">#nome#</div>
+
+            <div class="titulo">VALOR</div>
+            <div class="linha">R$ #valor#</div>
+
+            <div class="titulo">DATA</div>
+            <div class="linha" style="width: 60%;">#data#</div>
+            <br><br>
+            <div class="assinatura">ASSINATURA</div>
+          </div>
+
+          <div class="principal">
+            <div class="logo">
+              <div><img src="logo.png" alt="Logo" width="180" height="80"></div>
+              <div><strong></strong></div>
+            </div>
+
+            <div class="valor-box">RECIBO <br> R$ #valor#</div>
+
+            <div class="linha"><b>Recebemos de</b>  #nome# </div>
+            <div class="linha"><b>Importância de</b> #valorExt# </div>
+            <div class="linha"><b>Referente a</b> #job# </div>
+
+            <div class="linha-data">#cidade#, #dataExt#.</div>
+            <br>
+            <div class="assinatura">ASSINATURA</div>
+
+            <div class="rodape">
+              Az² - Estratégias de TI - (51) 98552.8251
+            </div>
+          </div>
+        </div>`;
+
+      const infos = {
+        "nome": nome,
+        "valor": valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        "data": data,
+        "job": job,
+		"cidade": cidade,
+        "valorExt": valorExt,
+        "dataExt": dataExt
+      };
+
+      let textoRecibo = modeloHTML;
+      for (let chave in infos) {
+        const regex = new RegExp(`#${chave}#`, "g");
+        textoRecibo = textoRecibo.replace(regex, infos[chave]);
+      }
+
+      document.getElementById("reciboResultado").innerHTML = textoRecibo;
+      document.getElementById("reciboResultado").style.display = "block";
+      document.getElementById("botoesAcoes").style.display = "block";
+      this.style.display = "none";
+    });
+  </script>
+</body>
+</html>
